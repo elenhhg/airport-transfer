@@ -44,19 +44,15 @@ export function Features() {
         Why Choose Us
       </motion.h2>
 
-      {/* Timeline Container */}
       <div className="relative w-full max-w-5xl">
         {/* Middle Line */}
-<div className="hidden md:block absolute top-0 bottom-0 left-1/2 w-[2px] bg-gray-200 -translate-x-1/2" />
-
+        <div className="hidden md:block absolute top-0 bottom-0 left-1/2 w-[2px] bg-gray-200 -translate-x-1/2" />
 
         {/* Features */}
         <div className="flex flex-col gap-20 w-full">
           {features.map((feature, idx) => {
             const Icon = feature.icon;
             const isLeft = idx % 2 === 0;
-
-            // Scroll-based animations
             const start = 0.1 + idx * 0.1;
             const end = start + 0.2;
             const opacity = useTransform(scrollYProgress, [start, end], [0, 1]);
@@ -65,10 +61,14 @@ export function Features() {
             return (
               <motion.div
                 key={feature.title}
-                className={`relative w-full flex justify-center md:justify-${isLeft ? "start" : "end"}`}
+                className="relative w-full flex justify-center"
                 style={{ opacity, y }}
               >
-                <div className={`flex items-center gap-6 flex-col md:flex-row ${isLeft ? "md:flex-row" : "md:flex-row-reverse"}`}>
+                <div
+                  className={`flex items-center gap-6 flex-col md:flex-row w-full ${
+                    isLeft ? "md:justify-start" : "md:justify-end"
+                  }`}
+                >
                   {/* Icon */}
                   <motion.div
                     className="flex items-center justify-center bg-gray-900 text-white h-16 w-16 rounded-full shadow-lg flex-shrink-0 relative z-10"

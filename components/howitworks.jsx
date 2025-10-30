@@ -5,19 +5,19 @@ import { useRef } from "react";
 
 const steps = [
   {
-    number: "01",
+    number: "01.",
     title: "Book Online",
     description:
       "Choose your pickup & dropoff points. Select your date and time, and complete your reservation in seconds.",
   },
   {
-    number: "02",
+    number: "02.",
     title: "Get Confirmation",
     description:
       "Receive instant trip confirmation, including your driver details and a live tracking link.",
   },
   {
-    number: "03",
+    number: "03.",
     title: "Meet Your Driver",
     description:
       "Your driver awaits you at the pickup point with a personalized sign. Relax and enjoy the ride.",
