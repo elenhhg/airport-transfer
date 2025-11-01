@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 export async function POST(req) {
   try {
     const body = await req.json();
+
     const {
       pickupLocation,
       dropoffLocation,
@@ -20,7 +21,7 @@ export async function POST(req) {
       price,
     } = body;
 
-    // ✅ Έλεγχος required fields
+    // Έλεγχος required fields
     if (!pickupLocation || !dropoffLocation || !date || !time || !passengers) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
@@ -28,10 +29,11 @@ export async function POST(req) {
       );
     }
 
-    // ✅ Σύνδεση με MongoDB
+    // Σύνδεση με MongoDB
     await connectDB();
+    console.log("MongoDB connected");
 
-    // ✅ Δημιουργία κράτησης (ίδια ονόματα με το schema)
+    // Δημιουργία κράτησης
     const booking = await Booking.create({
       pickupLocation,
       dropoffLocation,
@@ -45,8 +47,9 @@ export async function POST(req) {
       distanceKm,
       price,
     });
+    console.log("Booking created:", booking._id);
 
-    // ✅ Ρύθμιση μεταφορέα email (Nodemailer)
+    // Nodemailer transporter
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -55,7 +58,7 @@ export async function POST(req) {
       },
     });
 
-    // ✅ Αποστολή email ειδοποίησης
+    // Αποστολή email ειδοποίησης
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: process.env.EMAIL_USER,
@@ -76,12 +79,13 @@ Distance: ${distanceKm || "N/A"} km
 Price: ${price ? `€${price}` : "N/A"}
       `,
     });
+    console.log("Email sent");
 
-    return NextResponse.json({ success: true, booking });
+    return NextResponse.json({ success: true, booking }, { status: 200 });
   } catch (err) {
     console.error("Booking error:", err);
     return NextResponse.json(
-      { success: false, error: "Server error" },
+      { success: false, error: err.message || "Server error" },
       { status: 500 }
     );
   }
