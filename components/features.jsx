@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Clock, Shield, DollarSign, HeadphonesIcon } from "lucide-react";
 
 const features = [
@@ -31,15 +31,26 @@ export function Features() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
 
+  // Mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const updateMobile = () => setIsMobile(window.innerWidth < 768);
+    updateMobile();
+    window.addEventListener("resize", updateMobile);
+    return () => window.removeEventListener("resize", updateMobile);
+  }, []);
+
+  // Header animation
+  const headerRange = isMobile ? [0, 0.25] : [0, 0.1]; // πιο νωρίς σε mobile
+  const headerOpacity = useTransform(scrollYProgress, headerRange, [0, 1]);
+  const headerY = useTransform(scrollYProgress, headerRange, [50, 0]);
+
   return (
     <section ref={ref} className="relative py-28 px-6 bg-white flex flex-col items-center">
       {/* Section Title */}
       <motion.h2
         className="text-5xl font-extrabold text-gray-900 mb-28 text-center"
-        style={{
-          opacity: useTransform(scrollYProgress, [0, 0.1], [0, 1]),
-          y: useTransform(scrollYProgress, [0, 0.1], [50, 0])
-        }}
+        style={{ opacity: headerOpacity, y: headerY }}
       >
         Why Choose Us
       </motion.h2>
@@ -53,8 +64,11 @@ export function Features() {
           {features.map((feature, idx) => {
             const Icon = feature.icon;
             const isLeft = idx % 2 === 0;
-            const start = 0.1 + idx * 0.1;
-            const end = start + 0.2;
+
+            // Πιο νωρίς εμφάνιση σε mobile
+            const start = isMobile ? 0 + idx * 0.05 : 0.1 + idx * 0.1;
+            const end = isMobile ? start + 0.3 : start + 0.2;
+
             const opacity = useTransform(scrollYProgress, [start, end], [0, 1]);
             const y = useTransform(scrollYProgress, [start, end], [50, 0]);
 

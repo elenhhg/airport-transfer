@@ -1,10 +1,10 @@
 "use client";
 
-import { motion, useScroll, useTransform } from "framer-motion"
-import { useRef } from "react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Users, Luggage } from "lucide-react"
+import { motion, useScroll, useTransform } from "framer-motion";
+import { useRef, useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Users, Luggage } from "lucide-react";
 
 const vehicles = [
   {
@@ -31,24 +31,34 @@ const vehicles = [
     features: ["Leather Seats", "Premium Sound", "Privacy Glass"],
     price: "$95",
   },
-]
+];
 
 export function FleetSection() {
-  const ref = useRef(null)
+  const ref = useRef(null);
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ["start start", "end start"],
-  })
+  });
 
-  // Ακόμα πιο αργή εξαφάνιση
-  const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0])
-  const y = useTransform(scrollYProgress, [0, 0.8], [0, -30])
+  // State για mobile detection
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const updateMobile = () => setIsMobile(window.innerWidth < 768);
+    updateMobile();
+    window.addEventListener("resize", updateMobile);
+    return () => window.removeEventListener("resize", updateMobile);
+  }, []);
+
+  // Πιο αργή εξαφάνιση σε κινητά
+  const scrollRange = isMobile ? [0, 1.9] : [0, 0.8];
+  const opacity = useTransform(scrollYProgress, scrollRange, [1, 0]);
+  const y = useTransform(scrollYProgress, scrollRange, [0, -30]);
 
   return (
     <section ref={ref} className="py-28 px-6 md:px-12 bg-white">
       <div className="max-w-6xl mx-auto text-center">
         {/* Section Header */}
-        <motion.div style={{ opacity, y }}>
+        <motion.div style={{ opacity, y }} transition={{ ease: "easeOut", duration: 0.8 }}>
           <h2 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
             Our Fleet
           </h2>
@@ -61,13 +71,14 @@ export function FleetSection() {
         <motion.div
           className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8"
           style={{ opacity, y }}
+          transition={{ ease: "easeOut", duration: 0.8 }}
         >
           {vehicles.map((vehicle, idx) => (
             <motion.div
               key={idx}
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: idx * 0.15 }}
+              transition={{ duration: 0.6, delay: idx * 0.15, ease: "easeOut" }}
               whileHover={{ y: -8, scale: 1.03, transition: { duration: 0.3 } }}
               className="bg-gray-50 rounded-2xl flex flex-col overflow-hidden shadow-sm hover:shadow-lg"
             >
@@ -101,9 +112,8 @@ export function FleetSection() {
                 <div className="mt-auto flex justify-between items-center">
                   <span className="font-bold text-gray-900">{vehicle.price}</span>
                   <Button className="bg-gradient-to-b from-gray-200 to-gray-400 text-gray-900 font-semibold px-6 py-3 text-sm rounded-full shadow-md hover:shadow-xl hover:scale-105 transition-transform duration-300">
-  Book
-</Button>
-
+                    Book
+                  </Button>
                 </div>
               </div>
             </motion.div>
@@ -111,12 +121,12 @@ export function FleetSection() {
         </motion.div>
 
         {/* View Full Fleet Button */}
-        <motion.div className="mt-16" style={{ opacity, y }}>
+        <motion.div style={{ opacity, y }} transition={{ ease: "easeOut", duration: 0.8 }} className="mt-16">
           <Link href="/fleet">
-            <Button className=" grey-gradient from-primary to-secondary">View Full Fleet</Button>
+            <Button className="grey-gradient from-primary to-secondary">View Full Fleet</Button>
           </Link>
         </motion.div>
       </div>
     </section>
-  )
+  );
 }
