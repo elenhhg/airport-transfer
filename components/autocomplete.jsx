@@ -1,66 +1,66 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MapPin } from "lucide-react";
 import dynamic from "next/dynamic";
-
-// Φορτώνουμε το Leaflet Map μόνο στο client
-const MapContainer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.MapContainer),
-  { ssr: false }
-);
-const TileLayer = dynamic(
-  () => import("react-leaflet").then((mod) => mod.TileLayer),
-  { ssr: false }
-);
-const Marker = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Marker),
-  { ssr: false }
-);
-const Popup = dynamic(
-  () => import("react-leaflet").then((mod) => mod.Popup),
-  { ssr: false }
-);
-
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Διορθώνουμε τα default icons του Leaflet
+import iconUrl from "leaflet/dist/images/marker-icon.png";
+import iconRetinaUrl from "leaflet/dist/images/marker-icon-2x.png";
+import shadowUrl from "leaflet/dist/images/marker-shadow.png";
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "/leaflet/marker-icon-2x.png",
-  iconUrl: "/leaflet/marker-icon.png",
-  shadowUrl: "/leaflet/marker-shadow.png",
+  iconRetinaUrl,
+  iconUrl,
+  shadowUrl,
 });
+
+const MapContainer = dynamic(() => import("react-leaflet").then(mod => mod.MapContainer), { ssr: false });
+const TileLayer = dynamic(() => import("react-leaflet").then(mod => mod.TileLayer), { ssr: false });
+const Marker = dynamic(() => import("react-leaflet").then(mod => mod.Marker), { ssr: false });
+const Popup = dynamic(() => import("react-leaflet").then(mod => mod.Popup), { ssr: false });
+
+// Debounce helper
+const debounce = (fn, delay = 300) => {
+  let timer;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+};
 
 export default function LocationAutocomplete({ id, label, value, onChange, setLatLon }) {
   const [suggestions, setSuggestions] = useState([]);
   const [showList, setShowList] = useState(false);
   const [markerPos, setMarkerPos] = useState(null);
 
-  // Αναζήτηση τοποθεσίας με Nominatim OpenStreetMap
-  const searchLocation = async (query) => {
-    if (query.trim().length < 2) return setSuggestions([]);
-    try {
-      const res = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`,
-        { headers: { "User-Agent": "transfer-booking-app/1.0" } }
-      );
-      if (!res.ok) return;
-      const data = await res.json();
-      setSuggestions(data.slice(0, 6));
-      setShowList(true);
-    } catch (e) {
-      console.error("Location autocomplete error:", e);
-    }
-  };
+  // useRef για την debounced function
+  const searchRef = useRef(
+    debounce(async (query) => {
+      if (query.trim().length < 2) return setSuggestions([]);
+      try {
+        const res = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`,
+          { headers: { "User-Agent": "transfer-booking-app/1.0" } }
+        );
+        if (!res.ok) return;
+        const data = await res.json();
+        setSuggestions(data.slice(0, 6));
+        setShowList(true);
+      } catch (e) {
+        console.error("Location autocomplete error:", e);
+      }
+    }, 300)
+  );
 
   const handleChange = (e) => {
     const q = e.target.value;
     onChange(q);
-    searchLocation(q);
+    searchRef.current(q); // Καλούμε τη debounced function
   };
 
   const select = (place) => {
