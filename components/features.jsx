@@ -31,7 +31,7 @@ export function Features() {
   const ref = useRef(null);
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end end"] });
 
-  // Mobile detection
+
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const updateMobile = () => setIsMobile(window.innerWidth < 768);
